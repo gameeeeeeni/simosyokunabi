@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>しもしょく | 地元のお店・BARガイド</title>
+
+    <meta name="theme-color" content="#1e293b" />
+    <link
+      rel="manifest"
+      href="data:application/manifest+json,{%22name%22:%22しもしょく%22,%22short_name%22:%22しもしょく%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%23ffffff%22,%22theme_color%22:%22%231e293b%22}"
+    />
+
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      body { background-color: #f8fafc; color: #1e293b; line-height: 1.5; }
+      header { background: #1e293b; color: white; padding: 16px; text-align: center; position: sticky; top: 0; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      header h1 { font-size: 1.25rem; font-weight: bold; letter-spacing: 0.05em; }
+
+      .site-intro { background: #ffffff; padding: 16px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; color: #475569; }
+      .site-intro p strong { color: #0f172a; }
+
+      /* 自団体バナー枠 */
+      .ad-banner-container {
+        margin: 12px 16px;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        background: #1e293b;
+        position: relative;
+      }
+      .ad-banner-link {
+        display: block;
+        position: relative;
+        text-decoration: none;
+        overflow: hidden;
+      }
+      .ad-banner-img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        display: block;
+        opacity: 0.75;
+        transition: transform 0.3s, opacity 0.3s;
+      }
+      .ad-banner-container:active .ad-banner-img {
+        transform: scale(1.02);
+        opacity: 0.9;
+      }
+      .ad-banner-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 0 16px;
+        background: linear-gradient(90deg, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.4) 100%);
+        color: white;
+      }
+      .ad-badge {
+        font-size: 0.65rem;
+        background: #38bdf8;
+        color: #0f172a;
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-bottom: 4px;
+      }
+      .ad-title {
+        font-size: 0.95rem;
+        font-weight: bold;
+        letter-spacing: 0.02em;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      }
+      .ad-subtext {
+        font-size: 0.72rem;
+        color: #cbd5e1;
+        margin-top: 2px;
+      }
+
+      .filter-section { padding: 14px 16px; background: white; border-bottom: 1px solid #e2e8f0; }
+      .search-box { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; margin-bottom: 12px; outline: none; }
+      .search-box:focus { border-color: #2563eb; }
+      .filter-tags { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; }
+      .tag-btn { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 20px; padding: 6px 14px; font-size: 0.8rem; white-space: nowrap; cursor: pointer; }
+      .tag-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
+      .budget-filter { margin-top: 8px; font-size: 0.85rem; display: flex; align-items: center; justify-content: space-between; color: #334155; }
+
+      .shop-list { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+      .shop-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; cursor: pointer; transition: transform 0.1s; }
+      .shop-card:active { transform: scale(0.99); }
+      .shop-img { width: 100%; height: 180px; object-fit: cover; background: #e2e8f0; }
+      .shop-info { padding: 14px; }
+      .shop-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+      .shop-name { font-size: 1.15rem; font-weight: bold; color: #0f172a; }
+      .shop-category { font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; }
+
+      /* ステータスバッジ（4種類対応） */
+      .shop-status { display: inline-block; font-size: 0.75rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; margin-bottom: 8px; }
+      .status-open { background: #dcfce7; color: #15803d; }   /* 空席あり */
+      .status-few { background: #fef9c3; color: #a16207; }    /* 残りわずか */
+      .status-contact { background: #ffedd5; color: #c2410c; }/* 要連絡 */
+      .status-full { background: #fee2e2; color: #b91c1c; }   /* 満席 */
+
+      .shop-details { font-size: 0.85rem; color: #475569; margin-bottom: 12px; }
+      .shop-details div { margin-bottom: 3px; }
+      .tap-hint { font-size: 0.75rem; color: #2563eb; text-align: right; margin-top: 6px; font-weight: 500; }
+
+      /* モーダル */
+      .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: flex-end; z-index: 100; }
+      .modal-overlay.active { display: flex; }
+      .modal-content { background: white; width: 100%; max-height: 90vh; overflow-y: auto; border-radius: 16px 16px 0 0; padding: 20px 16px 40px; position: relative; }
+      .modal-close { position: absolute; top: 14px; right: 16px; background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 1rem; font-weight: bold; cursor: pointer; z-index: 5; }
+
+      /* 横スクロール画像ギャラリー */
+      .gallery-wrapper { position: relative; margin-bottom: 12px; }
+      .gallery-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 8px; border-radius: 10px; -webkit-overflow-scrolling: touch; }
+      .gallery-container::-webkit-scrollbar { display: none; }
+      .gallery-item { flex: 0 0 100%; width: 100%; height: 210px; object-fit: cover; scroll-snap-align: start; border-radius: 10px; background: #f1f5f9; }
+      .gallery-indicator { position: absolute; bottom: 8px; right: 8px; background: rgba(15, 23, 42, 0.75); color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; pointer-events: none; }
+
+      .review-box { background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.85rem; color: #713f12; }
+      .review-box strong { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; color: #854d0e; }
+
+      .modal-map { width: 100%; height: 220px; border: none; border-radius: 8px; margin: 12px 0; background: #f1f5f9; }
+
+      .link-group { display: flex; gap: 8px; margin: 10px 0; }
+      .link-btn { flex: 1; text-align: center; text-decoration: none; padding: 8px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; border: 1px solid #cbd5e1; color: #334155; background: #f8fafc; }
+      .link-btn-insta { color: #e1306c; border-color: #fbcfe8; background: #fdf2f8; }
+
+      .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
+      .action-btn { flex: 1; text-align: center; text-decoration: none; padding: 12px; border-radius: 8px; font-size: 0.9rem; font-weight: bold; }
+      .btn-tel { background: #f1f5f9; color: #1e293b; border: 1px solid #cbd5e1; }
+      .btn-review { background: #2563eb; color: white; }
+
+      footer { background: #0f172a; color: #94a3b8; padding: 28px 16px 40px; font-size: 0.8rem; text-align: center; margin-top: 40px; }
+      .footer-title { color: #f8fafc; font-weight: bold; font-size: 0.95rem; margin-bottom: 4px; }
+      .footer-org { color: #cbd5e1; font-size: 0.8rem; margin-bottom: 12px; }
+      .footer-org a { color: #38bdf8; text-decoration: none; font-weight: 500; }
+      .footer-links { margin: 12px 0; }
+      .footer-links a { color: #38bdf8; text-decoration: none; margin: 0 8px; }
+      .footer-copy { margin-top: 16px; font-size: 0.75rem; color: #64748b; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>しもしょく</h1>
+    </header>
+
+    <div class="site-intro">
+      <p><strong>下曽根・地元エリアの飲食店をリアルタイムに応援！</strong></p>
+      <p style="margin-top: 4px;">
+        今夜行きたい居酒屋やBARの空席状況・メニューをまとめてチェックできます。
+      </p>
+    </div>
+
+    <!-- ひすプロ 公式サイトへのバナー -->
+    <div class="ad-banner-container">
+      <a href="https://gameeeeeeni.github.io/Hisupuros/" target="_blank" rel="noopener noreferrer" class="ad-banner-link">
+        <img 
+          src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1000&auto=format&fit=crop&q=80" 
+          alt="ひすプロ 公式サイト" 
+          class="ad-banner-img"
+        >
+        <div class="ad-banner-overlay">
+          <span class="ad-badge">運営 / 制作</span>
+          <span class="ad-title">ひすプロ 公式サイト ➔</span>
+          <span class="ad-subtext">地域活性化プロジェクト・Web/クリエイティブ事業</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="filter-section">
+      <input
+        type="text"
+        id="searchInput"
+        class="search-box"
+        placeholder="店名・料理・キーワードで検索..."
+        oninput="handleSearch()"
+      />
+      <div class="filter-tags">
+        <button class="tag-btn active" onclick="filterCategory('すべて')">
+          すべて
+        </button>
+      </div>
+      <div class="budget-filter">
+        <label>予算上限: <span id="budgetValue">指定なし</span></label>
+        <input
+          type="range"
+          id="budgetRange"
+          min="1000"
+          max="10000"
+          step="500"
+          value="10000"
+          oninput="filterBudget(this.value)"
+        />
+      </div>
+    </div>
+
+    <div class="shop-list" id="shopList">
+      <div style="text-align: center; padding: 40px 0; color: #94a3b8;">
+        店舗情報を読み込み中...
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="shopModal" onclick="closeModal(event)">
+      <div class="modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal()">✕</button>
+
+        <div class="gallery-wrapper">
+          <div class="gallery-container" id="modalGallery"></div>
+          <div class="gallery-indicator" id="galleryIndicator">1/1</div>
+        </div>
+
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;"
+        >
+          <h2 id="modalName" style="font-size: 1.3rem; font-weight: bold;"></h2>
+          <span id="modalCategory" class="shop-category"></span>
+        </div>
+        <div>
+          <span id="modalStatus" class="shop-status"></span>
+        </div>
+
+        <div
+          style="font-size: 0.85rem; color: #334155; margin-top: 10px; line-height: 1.6;"
+        >
+          <p><strong>💰 予算:</strong> <span id="modalBudget"></span></p>
+          <p><strong>🕒 営業時間:</strong> <span id="modalHours"></span></p>
+          <p><strong>🍴 おすすめ:</strong> <span id="modalMenu"></span></p>
+          <p
+            style="margin-top: 8px; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;"
+          >
+            <span id="modalComment"></span>
+          </p>
+
+          <div class="link-group" id="modalLinkGroup">
+            <a
+              id="modalInsta"
+              href=""
+              target="_blank"
+              class="link-btn link-btn-insta"
+              style="display: none;"
+              >📸 Instagram</a
+            >
+            <a
+              id="modalSite"
+              href=""
+              target="_blank"
+              class="link-btn"
+              style="display: none;"
+              >🌐 公式サイト</a
+            >
+          </div>
+
+          <div class="review-box" id="modalReviewBox" style="display: none;">
+            <strong>⭐ Googleの注目クチコミ:</strong>
+            <span id="modalReviewText"></span>
+          </div>
+
+          <p style="margin-top: 8px;">
+            <strong>📍 住所:</strong> <span id="modalAddress"></span>
+          </p>
+        </div>
+
+        <iframe
+          id="modalMapFrame"
+          class="modal-map"
+          loading="lazy"
+          allowfullscreen
+        ></iframe>
+
+        <div class="modal-actions">
+          <a id="modalTel" href="" class="action-btn btn-tel">📞 電話する</a>
+          <a
+            id="modalReviewBtn"
+            href=""
+            target="_blank"
+            class="action-btn btn-review"
+            >★ Google口コミを見る・書く</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer-title">しもしょく運営事務局</div>
+      <div class="footer-org">企画・運営：<a href="https://gameeeeeeni.github.io/Hisupuros/" target="_blank" rel="noopener noreferrer">ひすプロ公式サイト</a></div>
+      <div class="footer-links">
+        <a href="https://gameeeeeeni.github.io/Hisupuros/" target="_blank" rel="noopener noreferrer">運営団体概要</a>
+        <span>|</span>
+        <a href="mailto:info@example.com?subject=しもしょく掲載・お問い合わせ">店舗掲載のお問い合わせ</a>
+        <span>|</span>
+        <a href="#">利用規約</a>
+      </div>
+      <div class="footer-copy">© 2026 しもしょく All Rights Reserved.</div>
+    </footer>
+
+    <script>
+      // デプロイ済みのGASウェブアプリAPIエンドポイント
+      const API_URL = 'https://script.google.com/macros/s/AKfycbwDO6yS35C-uCBg5jQ-iSTiJIQ5tD02OGIGDms76Mqz9pkhp9eUHMXcSmg1AiCvkiNZ/exec';
+
+      let allShops = [];
+      let currentCategory = 'すべて';
+      let maxBudget = 10000;
+      let keyword = '';
+
+      function getStatusClass(status) {
+        if (!status) return 'status-open';
+        if (status.includes('満席')) return 'status-full';
+        if (status.includes('わずか')) return 'status-few';
+        if (status.includes('連絡')) return 'status-contact';
+        return 'status-open';
+      }
+
+      function formatBudget(min, max) {
+        if (min !== null && max !== null) return `¥${min.toLocaleString()} 〜 ¥${max.toLocaleString()}`;
+        if (min !== null) return `¥${min.toLocaleString()} 〜`;
+        if (max !== null) return `〜 ¥${max.toLocaleString()}`;
+        return '予算情報なし';
+      }
+
+      async function loadShops() {
+        const container = document.getElementById('shopList');
+        try {
+          const response = await fetch(API_URL + '?t=' + new Date().getTime());
+          if (!response.ok) throw new Error('通信ステータス: ' + response.status);
+
+          const data = await response.json();
+          if (!data || data.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8;">データが空です</div>';
+            return;
+          }
+
+          allShops = data.map((item, idx) => {
+            const rawImg = item['店舗画像URL'] || '';
+            const images = rawImg.toString().split(/[\r\n,]+/)
+              .map(u => u.trim())
+              .filter(u => u.startsWith('http'));
+
+            const bMin = item['予算_下限'] !== '' && !isNaN(item['予算_下限']) ? parseInt(item['予算_下限']) : null;
+            const bMax = item['予算_上限'] !== '' && !isNaN(item['予算_上限']) ? parseInt(item['予算_上限']) : null;
+
+            return {
+              _index: idx,
+              id: item['店舗ID'] || '',
+              name: item['店舗名'] || '名称未設定',
+              category: item['業態'] || 'その他',
+              budgetMin: bMin,
+              budgetMax: bMax,
+              status: item['席状況'] || item['席情報'] || '空席あり',
+              address: item['住所'] || '',
+              tel: item['電話番号'] || '',
+              hours: item['営業時間_定休日'] || '',
+              menu: item['おすすめメニュー'] || '',
+              comment: item['店舗紹介コメント'] || '',
+              images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800'],
+              mapUrl: item['Googleマップ口コミURL'] || '',
+              review: item['代表口コミ'] || item['代表コメント'] || '',
+              snsUrl: item['公式SNSリンク'] || item['公式SNS_URL'] || '',
+              siteUrl: item['公式サイト_URL'] || ''
+            };
+          }).filter(shop => shop.name !== '名称未設定');
+
+          updateCategoryTags();
+          renderShops();
+        } catch (e) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 30px 16px; color: #ef4444; font-size: 0.85rem; line-height: 1.6;">
+              <strong>データの読み込みに失敗しました</strong><br>
+              ${e.message}
+            </div>`;
+        }
+      }
+
+      function updateCategoryTags() {
+        const categories = Array.from(new Set(allShops.map(s => s.category).filter(c => c)));
+        const tagContainer = document.querySelector('.filter-tags');
+        if (!tagContainer) return;
+
+        let html = `<button class="tag-btn ${currentCategory === 'すべて' ? 'active' : ''}" onclick="filterCategory('すべて')">すべて</button>`;
+        categories.forEach(cat => {
+          html += `<button class="tag-btn ${currentCategory === cat ? 'active' : ''}" onclick="filterCategory('${cat}')">${cat}</button>`;
+        });
+        tagContainer.innerHTML = html;
+      }
+
+      function renderShops() {
+        const container = document.getElementById('shopList');
+        const filtered = allShops.filter(shop => {
+          const matchCategory = currentCategory === 'すべて' || shop.category === currentCategory;
+          const matchBudget = maxBudget >= 10000 || (shop.budgetMin !== null ? shop.budgetMin <= maxBudget : true);
+
+          const targetText = `${shop.name} ${shop.category} ${shop.menu} ${shop.comment} ${shop.address}`.toLowerCase();
+          const matchKeyword = !keyword || targetText.includes(keyword.toLowerCase());
+
+          return matchCategory && matchBudget && matchKeyword;
+        });
+
+        if (filtered.length === 0) {
+          container.innerHTML = '<div style="text-align: center; padding: 40px 0; color: #94a3b8;">条件に一致するお店が見つかりませんでした</div>';
+          return;
+        }
+
+        container.innerHTML = filtered.map(shop => {
+          const statusClass = getStatusClass(shop.status);
+
+          return `
+            <div class="shop-card" onclick="openModal(${shop._index})">
+              <img src="${shop.images[0]}" class="shop-img" alt="${shop.name}">
+              <div class="shop-info">
+                <div class="shop-header">
+                  <div class="shop-name">${shop.name}</div>
+                  <div class="shop-category">${shop.category}</div>
+                </div>
+                <div>
+                  <span class="shop-status ${statusClass}">${shop.status}</span>
+                </div>
+                <div class="shop-details">
+                  <div>💰 予算: ${formatBudget(shop.budgetMin, shop.budgetMax)}</div>
+                  <div>📍 ${shop.address || '住所情報なし'}</div>
+                  <div>🍴 ${shop.menu || 'おすすめ情報なし'}</div>
+                </div>
+                <div class="tap-hint">タップして詳細・マップを見る ➔</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function openModal(index) {
+        const shop = allShops.find(s => s._index === index);
+        if (!shop) return;
+
+        document.getElementById('modalName').textContent = shop.name;
+        document.getElementById('modalCategory').textContent = shop.category;
+
+        const gallery = document.getElementById('modalGallery');
+        const indicator = document.getElementById('galleryIndicator');
+
+        gallery.innerHTML = shop.images.map((url, i) => `
+          <img src="${url}" class="gallery-item" alt="店舗写真 ${i+1}">
+        `).join('');
+
+        indicator.textContent = `1 / ${shop.images.length}`;
+        indicator.style.display = shop.images.length > 1 ? 'block' : 'none';
+
+        gallery.onscroll = () => {
+          const itemWidth = gallery.offsetWidth;
+          const page = Math.round(gallery.scrollLeft / itemWidth) + 1;
+          indicator.textContent = `${page} / ${shop.images.length}`;
+        };
+
+        const statusEl = document.getElementById('modalStatus');
+        statusEl.textContent = shop.status;
+        statusEl.className = 'shop-status ' + getStatusClass(shop.status);
+
+        document.getElementById('modalBudget').textContent = formatBudget(shop.budgetMin, shop.budgetMax);
+        document.getElementById('modalHours').textContent = shop.hours || '未設定';
+        document.getElementById('modalMenu').textContent = shop.menu || '未設定';
+        document.getElementById('modalComment').textContent = shop.comment || '店舗紹介文は準備中です。';
+        document.getElementById('modalAddress').textContent = shop.address || '住所情報なし';
+
+        const instaBtn = document.getElementById('modalInsta');
+        if (shop.snsUrl) {
+          instaBtn.href = shop.snsUrl;
+          instaBtn.style.display = 'inline-block';
+        } else {
+          instaBtn.style.display = 'none';
+        }
+
+        const siteBtn = document.getElementById('modalSite');
+        if (shop.siteUrl) {
+          siteBtn.href = shop.siteUrl;
+          siteBtn.style.display = 'inline-block';
+        } else {
+          siteBtn.style.display = 'none';
+        }
+
+        const reviewBox = document.getElementById('modalReviewBox');
+        if (shop.review) {
+          document.getElementById('modalReviewText').textContent = shop.review;
+          reviewBox.style.display = 'block';
+        } else {
+          reviewBox.style.display = 'none';
+        }
+
+        const encodedAddress = encodeURIComponent(shop.address || shop.name);
+        document.getElementById('modalMapFrame').src = `https://maps.google.co.jp/maps?output=embed&q=${encodedAddress}`;
+
+        document.getElementById('modalTel').href = shop.tel ? `tel:${shop.tel}` : '#';
+        document.getElementById('modalReviewBtn').href = shop.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+
+        document.getElementById('shopModal').classList.add('active');
+      }
+
+      function closeModal(e) {
+        document.getElementById('shopModal').classList.remove('active');
+      }
+
+      function handleSearch() {
+        keyword = document.getElementById('searchInput').value.trim();
+        renderShops();
+      }
+
+      function filterCategory(cat) {
+        currentCategory = cat;
+        document.querySelectorAll('.tag-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.textContent === cat);
+        });
+        renderShops();
+      }
+
+      function filterBudget(val) {
+        maxBudget = parseInt(val);
+        document.getElementById('budgetValue').textContent = val >= 10000 ? '指定なし' : `〜¥${Number(val).toLocaleString()}`;
+        renderShops();
+      }
+
+      // 初回ロード
+      loadShops();
+
+      // 30秒ごとにバックグラウンドで最新の空席状況を自動再取得
+      setInterval(() => {
+        loadShops();
+      }, 30000);
+    </script>
+  </body>
+</html>
