@@ -162,7 +162,8 @@
     <div class="ad-banner-container">
       <a href="https://gameeeeeeni.github.io/Hisupuros/" target="_blank" rel="noopener noreferrer" class="ad-banner-link">
         <img 
-          src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1000&auto=format&fit=crop&q=80" 
+          src="https://gameeeeeeni.github.io/Hisupuros/images/banner.jpg" 
+          onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1000&auto=format&fit=crop&q=80';"
           alt="ひすプロ 公式サイト" 
           class="ad-banner-img"
         >
@@ -301,8 +302,11 @@
     </footer>
 
     <script>
-      // デプロイ済みのGASウェブアプリAPIエンドポイント
       const API_URL = 'https://script.google.com/macros/s/AKfycbwDO6yS35C-uCBg5jQ-iSTiJIQ5tD02OGIGDms76Mqz9pkhp9eUHMXcSmg1AiCvkiNZ/exec';
+
+      // GitHub上の画像格納フォルダURL（末尾にスラッシュを付ける）
+      const GITHUB_IMAGE_BASE = 'https://gameeeeeeni.github.io/Hisupuros/images/';
+      const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
 
       let allShops = [];
       let currentCategory = 'すべて';
@@ -324,6 +328,16 @@
         return '予算情報なし';
       }
 
+      // 「ファイル名」または「フルURL」のどちらが来ても正しいURLに整形する関数
+      function resolveImageUrl(fileNameOrUrl) {
+        const clean = (fileNameOrUrl || '').trim();
+        if (!clean) return '';
+        if (clean.startsWith('http://') || clean.startsWith('https://')) {
+          return clean;
+        }
+        return GITHUB_IMAGE_BASE + clean;
+      }
+
       async function loadShops() {
         const container = document.getElementById('shopList');
         try {
@@ -339,8 +353,8 @@
           allShops = data.map((item, idx) => {
             const rawImg = item['店舗画像URL'] || '';
             const images = rawImg.toString().split(/[\r\n,]+/)
-              .map(u => u.trim())
-              .filter(u => u.startsWith('http'));
+              .map(u => resolveImageUrl(u))
+              .filter(u => u.length > 0);
 
             const bMin = item['予算_下限'] !== '' && !isNaN(item['予算_下限']) ? parseInt(item['予算_下限']) : null;
             const bMax = item['予算_上限'] !== '' && !isNaN(item['予算_上限']) ? parseInt(item['予算_上限']) : null;
@@ -358,7 +372,7 @@
               hours: item['営業時間_定休日'] || '',
               menu: item['おすすめメニュー'] || '',
               comment: item['店舗紹介コメント'] || '',
-              images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800'],
+              images: images.length > 0 ? images : [FALLBACK_IMAGE],
               mapUrl: item['Googleマップ口コミURL'] || '',
               review: item['代表口コミ'] || item['代表コメント'] || '',
               snsUrl: item['公式SNSリンク'] || item['公式SNS_URL'] || '',
@@ -411,7 +425,7 @@
 
           return `
             <div class="shop-card" onclick="openModal(${shop._index})">
-              <img src="${shop.images[0]}" class="shop-img" alt="${shop.name}">
+              <img src="${shop.images[0]}" class="shop-img" alt="${shop.name}" onerror="this.onerror=null; this.src='${FALLBACK_IMAGE}';">
               <div class="shop-info">
                 <div class="shop-header">
                   <div class="shop-name">${shop.name}</div>
@@ -439,11 +453,12 @@
         document.getElementById('modalName').textContent = shop.name;
         document.getElementById('modalCategory').textContent = shop.category;
 
+        // 横スクロール画像カルーセル
         const gallery = document.getElementById('modalGallery');
         const indicator = document.getElementById('galleryIndicator');
 
         gallery.innerHTML = shop.images.map((url, i) => `
-          <img src="${url}" class="gallery-item" alt="店舗写真 ${i+1}">
+          <img src="${url}" class="gallery-item" alt="店舗写真 ${i+1}" onerror="this.onerror=null; this.src='${FALLBACK_IMAGE}';">
         `).join('');
 
         indicator.textContent = `1 / ${shop.images.length}`;
@@ -521,10 +536,8 @@
         renderShops();
       }
 
-      // 初回ロード
       loadShops();
 
-      // 30秒ごとにバックグラウンドで最新の空席状況を自動再取得
       setInterval(() => {
         loadShops();
       }, 30000);
