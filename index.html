@@ -23,7 +23,6 @@
       .site-intro { background: #ffffff; padding: 16px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; color: #475569; }
       .site-intro p strong { color: #0f172a; }
 
-      /* 自団体バナー枠 */
       .ad-banner-container {
         margin: 12px 16px;
         border-radius: 10px;
@@ -99,12 +98,13 @@
       .shop-name { font-size: 1.15rem; font-weight: bold; color: #0f172a; }
       .shop-category { font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; }
 
-      /* ステータスバッジ（4種類対応） */
+      /* ステータスバッジ（準備中を追加） */
       .shop-status { display: inline-block; font-size: 0.75rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; margin-bottom: 8px; }
       .status-open { background: #dcfce7; color: #15803d; }   /* 空席あり */
       .status-few { background: #fef9c3; color: #a16207; }    /* 残りわずか */
       .status-contact { background: #ffedd5; color: #c2410c; }/* 要連絡 */
       .status-full { background: #fee2e2; color: #b91c1c; }   /* 満席 */
+      .status-prep { background: #e2e8f0; color: #475569; }   /* 準備中 */
 
       .shop-details { font-size: 0.85rem; color: #475569; margin-bottom: 12px; }
       .shop-details div { margin-bottom: 3px; }
@@ -116,12 +116,18 @@
       .modal-content { background: white; width: 100%; max-height: 90vh; overflow-y: auto; border-radius: 16px 16px 0 0; padding: 20px 16px 40px; position: relative; }
       .modal-close { position: absolute; top: 14px; right: 16px; background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 1rem; font-weight: bold; cursor: pointer; z-index: 5; }
 
-      /* 横スクロール画像ギャラリー */
       .gallery-wrapper { position: relative; margin-bottom: 12px; }
       .gallery-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 8px; border-radius: 10px; -webkit-overflow-scrolling: touch; }
       .gallery-container::-webkit-scrollbar { display: none; }
       .gallery-item { flex: 0 0 100%; width: 100%; height: 210px; object-fit: cover; scroll-snap-align: start; border-radius: 10px; background: #f1f5f9; }
       .gallery-indicator { position: absolute; bottom: 8px; right: 8px; background: rgba(15, 23, 42, 0.75); color: white; font-size: 0.7rem; padding: 2px 8px; border-radius: 12px; pointer-events: none; }
+
+      .modal-status-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+      .update-time-badge { font-size: 0.72rem; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; }
+
+      /* 今週の営業時間ボックス */
+      .weekly-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 12px; margin: 10px 0; font-size: 0.82rem; color: #166534; }
+      .weekly-box strong { display: block; margin-bottom: 4px; color: #15803d; font-size: 0.85rem; }
 
       .review-box { background: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 12px; margin: 12px 0; font-size: 0.85rem; color: #713f12; }
       .review-box strong { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; color: #854d0e; }
@@ -217,45 +223,35 @@
           <div class="gallery-indicator" id="galleryIndicator">1/1</div>
         </div>
 
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;"
-        >
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
           <h2 id="modalName" style="font-size: 1.3rem; font-weight: bold;"></h2>
           <span id="modalCategory" class="shop-category"></span>
         </div>
-        <div>
+
+        <!-- 席状況 ＋ 最終更新日時 -->
+        <div class="modal-status-row">
           <span id="modalStatus" class="shop-status"></span>
+          <span id="modalUpdateTime" class="update-time-badge">🕒 更新日時: 未設定</span>
         </div>
 
-        <div
-          style="font-size: 0.85rem; color: #334155; margin-top: 10px; line-height: 1.6;"
-        >
+        <div style="font-size: 0.85rem; color: #334155; margin-top: 10px; line-height: 1.6;">
           <p><strong>💰 予算:</strong> <span id="modalBudget"></span></p>
-          <p><strong>🕒 営業時間:</strong> <span id="modalHours"></span></p>
+          <p><strong>🕒 基本営業時間:</strong> <span id="modalHours"></span></p>
+
+          <!-- 店舗が調整可能な「今週の営業時間」 -->
+          <div class="weekly-box" id="modalWeeklyBox" style="display: none;">
+            <strong>📅 今週の営業時間・予定:</strong>
+            <span id="modalWeeklyHours" style="white-space: pre-wrap;"></span>
+          </div>
+
           <p><strong>🍴 おすすめ:</strong> <span id="modalMenu"></span></p>
-          <p
-            style="margin-top: 8px; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;"
-          >
+          <p style="margin-top: 8px; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
             <span id="modalComment"></span>
           </p>
 
           <div class="link-group" id="modalLinkGroup">
-            <a
-              id="modalInsta"
-              href=""
-              target="_blank"
-              class="link-btn link-btn-insta"
-              style="display: none;"
-              >📸 Instagram</a
-            >
-            <a
-              id="modalSite"
-              href=""
-              target="_blank"
-              class="link-btn"
-              style="display: none;"
-              >🌐 公式サイト</a
-            >
+            <a id="modalInsta" href="" target="_blank" class="link-btn link-btn-insta" style="display: none;">📸 Instagram</a>
+            <a id="modalSite" href="" target="_blank" class="link-btn" style="display: none;">🌐 公式サイト</a>
           </div>
 
           <div class="review-box" id="modalReviewBox" style="display: none;">
@@ -268,22 +264,11 @@
           </p>
         </div>
 
-        <iframe
-          id="modalMapFrame"
-          class="modal-map"
-          loading="lazy"
-          allowfullscreen
-        ></iframe>
+        <iframe id="modalMapFrame" class="modal-map" loading="lazy" allowfullscreen></iframe>
 
         <div class="modal-actions">
           <a id="modalTel" href="" class="action-btn btn-tel">📞 電話する</a>
-          <a
-            id="modalReviewBtn"
-            href=""
-            target="_blank"
-            class="action-btn btn-review"
-            >★ Google口コミを見る・書く</a
-          >
+          <a id="modalReviewBtn" href="" target="_blank" class="action-btn btn-review">★ Google口コミを見る・書く</a>
         </div>
       </div>
     </div>
@@ -303,8 +288,6 @@
 
     <script>
       const API_URL = 'https://script.google.com/macros/s/AKfycbwDO6yS35C-uCBg5jQ-iSTiJIQ5tD02OGIGDms76Mqz9pkhp9eUHMXcSmg1AiCvkiNZ/exec';
-
-      // GitHub上の画像格納フォルダURL（末尾にスラッシュを付ける）
       const GITHUB_IMAGE_BASE = 'https://gameeeeeeni.github.io/Hisupuros/images/';
       const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
 
@@ -315,6 +298,7 @@
 
       function getStatusClass(status) {
         if (!status) return 'status-open';
+        if (status.includes('準備')) return 'status-prep';
         if (status.includes('満席')) return 'status-full';
         if (status.includes('わずか')) return 'status-few';
         if (status.includes('連絡')) return 'status-contact';
@@ -328,7 +312,6 @@
         return '予算情報なし';
       }
 
-      // 「ファイル名」または「フルURL」のどちらが来ても正しいURLに整形する関数
       function resolveImageUrl(fileNameOrUrl) {
         const clean = (fileNameOrUrl || '').trim();
         if (!clean) return '';
@@ -367,6 +350,8 @@
               budgetMin: bMin,
               budgetMax: bMax,
               status: item['席状況'] || item['席情報'] || '空席あり',
+              updatedAt: item['最終更新日時'] || '',
+              weeklyHours: item['今週の営業時間'] || '',
               address: item['住所'] || '',
               tel: item['電話番号'] || '',
               hours: item['営業時間_定休日'] || '',
@@ -453,7 +438,6 @@
         document.getElementById('modalName').textContent = shop.name;
         document.getElementById('modalCategory').textContent = shop.category;
 
-        // 横スクロール画像カルーセル
         const gallery = document.getElementById('modalGallery');
         const indicator = document.getElementById('galleryIndicator');
 
@@ -474,8 +458,27 @@
         statusEl.textContent = shop.status;
         statusEl.className = 'shop-status ' + getStatusClass(shop.status);
 
+        // 最終更新日時
+        const updateEl = document.getElementById('modalUpdateTime');
+        if (shop.updatedAt) {
+          updateEl.textContent = `🕒 更新: ${shop.updatedAt}`;
+          updateEl.style.display = 'inline-block';
+        } else {
+          updateEl.style.display = 'none';
+        }
+
         document.getElementById('modalBudget').textContent = formatBudget(shop.budgetMin, shop.budgetMax);
         document.getElementById('modalHours').textContent = shop.hours || '未設定';
+
+        // 今週の営業時間
+        const weeklyBox = document.getElementById('modalWeeklyBox');
+        if (shop.weeklyHours) {
+          document.getElementById('modalWeeklyHours').textContent = shop.weeklyHours;
+          weeklyBox.style.display = 'block';
+        } else {
+          weeklyBox.style.display = 'none';
+        }
+
         document.getElementById('modalMenu').textContent = shop.menu || '未設定';
         document.getElementById('modalComment').textContent = shop.comment || '店舗紹介文は準備中です。';
         document.getElementById('modalAddress').textContent = shop.address || '住所情報なし';
