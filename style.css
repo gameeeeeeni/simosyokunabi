@@ -1,0 +1,505 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  background-color: #f8fafc;
+  color: #1e293b;
+  line-height: 1.5;
+}
+
+header {
+  background: #1e293b;
+  color: white;
+  padding: 16px;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+}
+
+.site-intro {
+  background: #ffffff;
+  padding: 16px;
+  text-align: center;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.site-intro p strong {
+  color: #0f172a;
+}
+
+/* 自団体バナー枠 */
+.ad-banner-container {
+  margin: 12px 16px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  background: #1e293b;
+  position: relative;
+}
+
+.ad-banner-link {
+  display: block;
+  position: relative;
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.ad-banner-img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+  opacity: 0.75;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.ad-banner-container:active .ad-banner-img {
+  transform: scale(1.02);
+  opacity: 0.9;
+}
+
+.ad-banner-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0 16px;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.4) 100%);
+  color: white;
+}
+
+.ad-badge {
+  font-size: 0.65rem;
+  background: #38bdf8;
+  color: #0f172a;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.ad-title {
+  font-size: 0.95rem;
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.ad-subtext {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  margin-top: 2px;
+}
+
+/* 検索 & フィルター */
+.filter-section {
+  padding: 14px 16px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.search-box {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  outline: none;
+}
+
+.search-box:focus {
+  border-color: #2563eb;
+}
+
+.filter-tags {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.tag-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tag-btn.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.budget-filter {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #334155;
+}
+
+/* 一覧カード */
+.shop-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.shop-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.shop-card:active {
+  transform: scale(0.99);
+}
+
+.shop-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: #e2e8f0;
+}
+
+.shop-info {
+  padding: 14px;
+}
+
+.shop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.shop-name {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #0f172a;
+}
+
+.shop-category {
+  font-size: 0.75rem;
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* ステータスバッジ */
+.shop-status {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: bold;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.status-open { background: #dcfce7; color: #15803d; }   /* 空席あり */
+.status-few { background: #fef9c3; color: #a16207; }    /* 残りわずか */
+.status-contact { background: #ffedd5; color: #c2410c; }/* 要連絡 */
+.status-full { background: #fee2e2; color: #b91c1c; }   /* 満席 */
+.status-prep { background: #e2e8f0; color: #475569; }   /* 準備中 */
+
+.shop-details {
+  font-size: 0.85rem;
+  color: #475569;
+  margin-bottom: 12px;
+}
+
+.shop-details div {
+  margin-bottom: 3px;
+}
+
+.tap-hint {
+  font-size: 0.75rem;
+  color: #2563eb;
+  text-align: right;
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* モーダル */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 100;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-content {
+  background: white;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 16px 16px 0 0;
+  padding: 20px 16px 40px;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: #e2e8f0;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 5;
+}
+
+/* 横スクロールギャラリー */
+.gallery-wrapper {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.gallery-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 8px;
+  border-radius: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gallery-container::-webkit-scrollbar {
+  display: none;
+}
+
+.gallery-item {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  scroll-snap-align: start;
+  border-radius: 10px;
+  background: #f1f5f9;
+}
+
+.gallery-indicator {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(15, 23, 42, 0.75);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.modal-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.update-time-badge {
+  font-size: 0.72rem;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.weekly-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  font-size: 0.82rem;
+  color: #166534;
+}
+
+.weekly-box strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #15803d;
+  font-size: 0.85rem;
+}
+
+.review-box {
+  background: #fefce8;
+  border: 1px solid #fef08a;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 12px 0;
+  font-size: 0.85rem;
+  color: #713f12;
+}
+
+.review-box strong {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+  color: #854d0e;
+}
+
+.modal-map {
+  width: 100%;
+  height: 220px;
+  border: none;
+  border-radius: 8px;
+  margin: 12px 0;
+  background: #f1f5f9;
+}
+
+.link-group {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.link-btn {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  background: #f8fafc;
+}
+
+.link-btn-insta {
+  color: #e1306c;
+  border-color: #fbcfe8;
+  background: #fdf2f8;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.action-btn {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.btn-tel {
+  background: #f1f5f9;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+}
+
+.btn-review {
+  background: #2563eb;
+  color: white;
+}
+
+/* フッター & 累計カウンター */
+footer {
+  background: #0f172a;
+  color: #94a3b8;
+  padding: 28px 16px 40px;
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.counter-container {
+  display: inline-block;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 20px;
+  padding: 6px 16px;
+  margin-bottom: 16px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.counter-num {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #38bdf8;
+  margin-left: 4px;
+  letter-spacing: 0.05em;
+}
+
+.footer-title {
+  color: #f8fafc;
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.footer-org {
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  margin-bottom: 12px;
+}
+
+.footer-org a {
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.footer-links {
+  margin: 12px 0;
+}
+
+.footer-links a {
+  color: #38bdf8;
+  text-decoration: none;
+  margin: 0 8px;
+}
+
+.footer-copy {
+  margin-top: 16px;
+  font-size: 0.75rem;
+  color: #64748b;
+}
