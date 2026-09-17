@@ -5,32 +5,12 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbwDO6yS35C-uCBg5jQ-iSTi
 const GITHUB_IMAGE_BASE = 'https://gameeeeeeni.github.io/Hisupuros/images/';
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
 
-// 累計アクセスカウンター API
-const COUNTER_API_URL = 'https://api.counterapi.dev/v1/shimosyoku_portal/visits/up';
-
 let allShops = [];
 let currentCategory = 'すべて';
 let maxBudget = 10000;
 let keyword = '';
 
-// 累計訪問者数の取得 & インクリメント
-async function updateVisitorCount() {
-  const counterEl = document.getElementById('visitorCount');
-  if (!counterEl) return;
-
-  try {
-    const response = await fetch(COUNTER_API_URL);
-    if (!response.ok) throw new Error('Counter API error');
-    const data = await response.json();
-    if (data && typeof data.count === 'number') {
-      counterEl.textContent = data.count.toLocaleString();
-    }
-  } catch (e) {
-    // 取得失敗時は静かに非表示
-    counterEl.textContent = '---';
-  }
-}
-
+// ステータスに応じたCSSクラスの判定
 function getStatusClass(status) {
   if (!status) return 'status-open';
   if (status.includes('準備')) return 'status-prep';
@@ -40,6 +20,7 @@ function getStatusClass(status) {
   return 'status-open';
 }
 
+// 予算表示のフォーマット
 function formatBudget(min, max) {
   if (min !== null && max !== null) return `¥${min.toLocaleString()} 〜 ¥${max.toLocaleString()}`;
   if (min !== null) return `¥${min.toLocaleString()} 〜`;
@@ -47,6 +28,7 @@ function formatBudget(min, max) {
   return '予算情報なし';
 }
 
+// ファイル名（〇〇.jpg）または外部URLの自動補完
 function resolveImageUrl(fileNameOrUrl) {
   const clean = (fileNameOrUrl || '').trim();
   if (!clean) return '';
@@ -56,19 +38,29 @@ function resolveImageUrl(fileNameOrUrl) {
   return GITHUB_IMAGE_BASE + clean;
 }
 
+// 店舗データと累計アクセス数をまとめて取得・反映
 async function loadShops() {
   const container = document.getElementById('shopList');
+  const counterEl = document.getElementById('visitorCount');
+
   try {
     const response = await fetch(API_URL + '?t=' + new Date().getTime());
     if (!response.ok) throw new Error('通信ステータス: ' + response.status);
 
-    const data = await response.json();
-    if (!data || data.length === 0) {
+    const json = await response.json();
+
+    // 累計アクセス数の更新
+    if (json.totalVisits && counterEl) {
+      counterEl.textContent = Number(json.totalVisits).toLocaleString();
+    }
+
+    const shopItems = json.shops || [];
+    if (shopItems.length === 0) {
       container.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8;">データが空です</div>';
       return;
     }
 
-    allShops = data.map((item, idx) => {
+    allShops = shopItems.map((item, idx) => {
       const rawImg = item['店舗画像URL'] || '';
       const images = rawImg.toString().split(/[\r\n,]+/)
         .map(u => resolveImageUrl(u))
@@ -111,6 +103,7 @@ async function loadShops() {
   }
 }
 
+// 業態カテゴリタグの自動生成
 function updateCategoryTags() {
   const categories = Array.from(new Set(allShops.map(s => s.category).filter(c => c)));
   const tagContainer = document.querySelector('.filter-tags');
@@ -123,6 +116,7 @@ function updateCategoryTags() {
   tagContainer.innerHTML = html;
 }
 
+// 店舗一覧の描画処理
 function renderShops() {
   const container = document.getElementById('shopList');
   const filtered = allShops.filter(shop => {
@@ -166,6 +160,7 @@ function renderShops() {
   }).join('');
 }
 
+// 詳細モーダルを開く処理（スマホの戻るボタン対応付き）
 function openModal(index) {
   const shop = allShops.find(s => s._index === index);
   if (!shop) return;
@@ -193,6 +188,7 @@ function openModal(index) {
   statusEl.textContent = shop.status;
   statusEl.className = 'shop-status ' + getStatusClass(shop.status);
 
+  // 最終更新日時
   const updateEl = document.getElementById('modalUpdateTime');
   if (shop.updatedAt) {
     updateEl.textContent = `🕒 更新: ${shop.updatedAt}`;
@@ -204,6 +200,7 @@ function openModal(index) {
   document.getElementById('modalBudget').textContent = formatBudget(shop.budgetMin, shop.budgetMax);
   document.getElementById('modalHours').textContent = shop.hours || '未設定';
 
+  // 今週の営業時間
   const weeklyBox = document.getElementById('modalWeeklyBox');
   if (shop.weeklyHours) {
     document.getElementById('modalWeeklyHours').textContent = shop.weeklyHours;
@@ -246,12 +243,14 @@ function openModal(index) {
   document.getElementById('modalTel').href = shop.tel ? `tel:${shop.tel}` : '#';
   document.getElementById('modalReviewBtn').href = shop.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
 
+  // 履歴スタックに #modal をプッシュ（戻るボタンで閉じられるようにする）
   if (window.location.hash !== '#modal') {
     history.pushState({ modalOpen: true }, '', '#modal');
   }
   document.getElementById('shopModal').classList.add('active');
 }
 
+// モーダルを閉じる処理
 function closeModal(e) {
   if (window.location.hash === '#modal') {
     history.back();
@@ -260,6 +259,7 @@ function closeModal(e) {
   }
 }
 
+// スマホの戻るボタン（またはスワイプ戻り）でモーダルを閉じる
 window.addEventListener('popstate', (event) => {
   const modal = document.getElementById('shopModal');
   if (modal && modal.classList.contains('active')) {
@@ -267,11 +267,13 @@ window.addEventListener('popstate', (event) => {
   }
 });
 
+// キーワード検索
 function handleSearch() {
   keyword = document.getElementById('searchInput').value.trim();
   renderShops();
 }
 
+// カテゴリ切り替え
 function filterCategory(cat) {
   currentCategory = cat;
   document.querySelectorAll('.tag-btn').forEach(btn => {
@@ -280,6 +282,7 @@ function filterCategory(cat) {
   renderShops();
 }
 
+// 予算スライダー切り替え
 function filterBudget(val) {
   maxBudget = parseInt(val);
   document.getElementById('budgetValue').textContent = val >= 10000 ? '指定なし' : `〜¥${Number(val).toLocaleString()}`;
@@ -288,9 +291,8 @@ function filterBudget(val) {
 
 // 初期ロード
 loadShops();
-updateVisitorCount();
 
-// 30秒ごとの自動再取得
+// 30秒ごとの自動更新
 setInterval(() => {
   loadShops();
 }, 30000);
