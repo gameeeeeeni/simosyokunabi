@@ -23,6 +23,7 @@
       .site-intro { background: #ffffff; padding: 16px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; color: #475569; }
       .site-intro p strong { color: #0f172a; }
 
+      /* 自団体バナー枠 */
       .ad-banner-container {
         margin: 12px 16px;
         border-radius: 10px;
@@ -98,7 +99,7 @@
       .shop-name { font-size: 1.15rem; font-weight: bold; color: #0f172a; }
       .shop-category { font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; }
 
-      /* ステータスバッジ（準備中を追加） */
+      /* ステータスバッジ（全種対応） */
       .shop-status { display: inline-block; font-size: 0.75rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; margin-bottom: 8px; }
       .status-open { background: #dcfce7; color: #15803d; }   /* 空席あり */
       .status-few { background: #fef9c3; color: #a16207; }    /* 残りわずか */
@@ -116,6 +117,7 @@
       .modal-content { background: white; width: 100%; max-height: 90vh; overflow-y: auto; border-radius: 16px 16px 0 0; padding: 20px 16px 40px; position: relative; }
       .modal-close { position: absolute; top: 14px; right: 16px; background: #e2e8f0; border: none; width: 30px; height: 30px; border-radius: 50%; font-size: 1rem; font-weight: bold; cursor: pointer; z-index: 5; }
 
+      /* 横スクロール画像ギャラリー */
       .gallery-wrapper { position: relative; margin-bottom: 12px; }
       .gallery-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 8px; border-radius: 10px; -webkit-overflow-scrolling: touch; }
       .gallery-container::-webkit-scrollbar { display: none; }
@@ -214,6 +216,7 @@
       </div>
     </div>
 
+    <!-- 詳細モーダル -->
     <div class="modal-overlay" id="shopModal" onclick="closeModal(event)">
       <div class="modal-content" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeModal()">✕</button>
@@ -231,7 +234,7 @@
         <!-- 席状況 ＋ 最終更新日時 -->
         <div class="modal-status-row">
           <span id="modalStatus" class="shop-status"></span>
-          <span id="modalUpdateTime" class="update-time-badge">🕒 更新日時: 未設定</span>
+          <span id="modalUpdateTime" class="update-time-badge">🕒 更新: 未設定</span>
         </div>
 
         <div style="font-size: 0.85rem; color: #334155; margin-top: 10px; line-height: 1.6;">
@@ -431,6 +434,7 @@
         }).join('');
       }
 
+      // 詳細モーダルを開く処理（履歴に #modal を追加）
       function openModal(index) {
         const shop = allShops.find(s => s._index === index);
         if (!shop) return;
@@ -513,12 +517,29 @@
         document.getElementById('modalTel').href = shop.tel ? `tel:${shop.tel}` : '#';
         document.getElementById('modalReviewBtn').href = shop.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
 
+        // 履歴スタックに #modal をプッシュ
+        if (window.location.hash !== '#modal') {
+          history.pushState({ modalOpen: true }, '', '#modal');
+        }
         document.getElementById('shopModal').classList.add('active');
       }
 
+      // モーダルを閉じる処理（画面上の✕ボタンや背景タップ時）
       function closeModal(e) {
-        document.getElementById('shopModal').classList.remove('active');
+        if (window.location.hash === '#modal') {
+          history.back(); // 履歴を戻して popstate を発火させる
+        } else {
+          document.getElementById('shopModal').classList.remove('active');
+        }
       }
+
+      // スマホの戻るボタン（またはスワイプ戻り）を検知してモーダルを閉じる
+      window.addEventListener('popstate', (event) => {
+        const modal = document.getElementById('shopModal');
+        if (modal && modal.classList.contains('active')) {
+          modal.classList.remove('active');
+        }
+      });
 
       function handleSearch() {
         keyword = document.getElementById('searchInput').value.trim();
@@ -539,8 +560,10 @@
         renderShops();
       }
 
+      // 初回ロード
       loadShops();
 
+      // 30秒ごとにバックグラウンドで最新の空席状況を自動再取得
       setInterval(() => {
         loadShops();
       }, 30000);
