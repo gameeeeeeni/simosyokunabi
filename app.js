@@ -38,7 +38,7 @@ function resolveImageUrl(fileNameOrUrl) {
   return GITHUB_IMAGE_BASE + clean;
 }
 
-// 店舗データと累計アクセス数をまとめて取得・反映
+// 店舗データと累計アクセス数をまとめて取得・反映（配列・オブジェクト両対応版）
 async function loadShops() {
   const container = document.getElementById('shopList');
   const counterEl = document.getElementById('visitorCount');
@@ -50,11 +50,18 @@ async function loadShops() {
     const json = await response.json();
 
     // 累計アクセス数の更新
-    if (json.totalVisits && counterEl) {
+    if (json && json.totalVisits && counterEl) {
       counterEl.textContent = Number(json.totalVisits).toLocaleString();
     }
 
-    const shopItems = json.shops || [];
+    // 配列型・オブジェクト型のどちらで返ってきても取得できるように判定
+    let shopItems = [];
+    if (Array.isArray(json)) {
+      shopItems = json;
+    } else if (json && Array.isArray(json.shops)) {
+      shopItems = json.shops;
+    }
+
     if (shopItems.length === 0) {
       container.innerHTML = '<div style="text-align:center; padding:30px; color:#94a3b8;">データが空です</div>';
       return;
@@ -160,7 +167,7 @@ function renderShops() {
   }).join('');
 }
 
-// 詳細モーダルを開く処理（スマホの戻るボタン対応付き）
+// 詳細モーダルを開く処理
 function openModal(index) {
   const shop = allShops.find(s => s._index === index);
   if (!shop) return;
@@ -243,7 +250,7 @@ function openModal(index) {
   document.getElementById('modalTel').href = shop.tel ? `tel:${shop.tel}` : '#';
   document.getElementById('modalReviewBtn').href = shop.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
 
-  // 履歴スタックに #modal をプッシュ（戻るボタンで閉じられるようにする）
+  // 戻るボタン対応
   if (window.location.hash !== '#modal') {
     history.pushState({ modalOpen: true }, '', '#modal');
   }
@@ -259,7 +266,7 @@ function closeModal(e) {
   }
 }
 
-// スマホの戻るボタン（またはスワイプ戻り）でモーダルを閉じる
+// スマホの戻るボタン検知
 window.addEventListener('popstate', (event) => {
   const modal = document.getElementById('shopModal');
   if (modal && modal.classList.contains('active')) {
@@ -289,10 +296,10 @@ function filterBudget(val) {
   renderShops();
 }
 
-// 初期ロード
+// 1. 初期ロード（ファイルの一番下で呼び出し）
 loadShops();
 
-// 30秒ごとの自動更新
+// 2. 30秒ごとの自動更新（ファイルの一番下で呼び出し）
 setInterval(() => {
   loadShops();
 }, 30000);
