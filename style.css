@@ -229,6 +229,8 @@ header h1 {
 .status-contact { background: #ffedd5; color: #c2410c; }/* 要連絡 */
 .status-full { background: #fee2e2; color: #b91c1c; }   /* 満席 */
 .status-prep { background: #e2e8f0; color: #475569; }   /* 準備中 */
+.status-holiday { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; } /* 定休日（目立つ薄赤枠） */
+
 
 .shop-details {
   font-size: 0.85rem;
